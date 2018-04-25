@@ -10,6 +10,9 @@ import static jsr223.nativeshell.IOUtils.pipe;
 import static jsr223.nativeshell.StringUtils.toEmptyStringIfNull;
 
 public class ExecutableScriptEngine extends AbstractScriptEngine {
+    
+    private final ScriptEngineFactory factory;
+    ExecutableScriptEngine(ScriptEngineFactory f) { factory = f; }
 
     @Override
     public Object eval(String script, ScriptContext scriptContext) throws ScriptException {
@@ -19,9 +22,10 @@ public class ExecutableScriptEngine extends AbstractScriptEngine {
             ProcessBuilder processBuilder = new ProcessBuilder(CommandLine.translateCommandline(commandLineWithBindings));
 
             Map<String, String> environment = processBuilder.environment();
-            for (Map.Entry<String, Object> binding : scriptContext.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
-                environment.put(binding.getKey(), toEmptyStringIfNull(binding.getValue()));
-            }
+            scriptContext.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()
+                    .forEach((binding) -> {
+                        environment.put(binding.getKey(), toEmptyStringIfNull(binding.getValue()));
+            });
 
             final Process process = processBuilder.start();
             Thread input = writeProcessInput(process.getOutputStream(), scriptContext.getReader());
@@ -143,7 +147,7 @@ public class ExecutableScriptEngine extends AbstractScriptEngine {
 
     @Override
     public ScriptEngineFactory getFactory() {
-        return new ExecutableScriptEngineFactory();
+        return factory;
     }
 
     public static final Comparator<Map.Entry<String, Object>> LONGER_KEY_FIRST = new Comparator<Map.Entry<String, Object>>() {

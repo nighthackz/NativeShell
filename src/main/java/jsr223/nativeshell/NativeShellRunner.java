@@ -23,7 +23,7 @@ public class NativeShellRunner {
 
     public static final Integer RETURN_CODE_OK = 0;
 
-    private NativeShell nativeShell;
+    private final NativeShell nativeShell;
 
     public NativeShellRunner(NativeShell nativeShell) {
         this.nativeShell = nativeShell;
@@ -57,10 +57,11 @@ public class NativeShellRunner {
 
         addBindingsAsEnvironmentVariables(scriptContext, processBuilder);
 
-        return run(processBuilder, scriptContext.getReader(), scriptContext.getWriter(), scriptContext.getErrorWriter());
+        return run(processBuilder, scriptContext.getReader(), scriptContext
+                .getWriter(), scriptContext.getErrorWriter());
     }
 
-    private String runAndGetOutput(String command) {
+    public String runAndGetOutput(String command) {
         ProcessBuilder processBuilder = nativeShell.createProcess(command);
         StringWriter processOutput = new StringWriter();
         Reader closedInput = new Reader() {
@@ -78,12 +79,16 @@ public class NativeShellRunner {
         return processOutput.toString();
     }
 
-    private static int run(ProcessBuilder processBuilder, Reader processInput, Writer processOutput, Writer processError) {
+    private static int run(ProcessBuilder processBuilder, Reader processInput,
+            Writer processOutput, Writer processError) {
         try {
             final Process process = processBuilder.start();
-            Thread input = writeProcessInput(process.getOutputStream(), processInput);
-            Thread output = readProcessOutput(process.getInputStream(), processOutput);
-            Thread error = readProcessOutput(process.getErrorStream(), processError);
+            Thread input = writeProcessInput(process.getOutputStream(),
+                    processInput);
+            Thread output = readProcessOutput(process.getInputStream(),
+                    processOutput);
+            Thread error = readProcessOutput(process.getErrorStream(),
+                    processError);
 
             input.start();
             output.start();
@@ -100,64 +105,75 @@ public class NativeShellRunner {
         }
     }
 
-    private void addBindingsAsEnvironmentVariables(ScriptContext scriptContext, ProcessBuilder processBuilder) {
+    private void addBindingsAsEnvironmentVariables(ScriptContext scriptContext,
+            ProcessBuilder processBuilder) {
         Map<String, String> environment = processBuilder.environment();
-        for (Map.Entry<String, Object> binding : scriptContext.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()) {
-            String bindingKey = binding.getKey();
-            Object bindingValue = binding.getValue();
+        scriptContext.getBindings(ScriptContext.ENGINE_SCOPE).entrySet()
+                .forEach((binding) -> {
+                    String bindingKey = binding.getKey();
+                    Object bindingValue = binding.getValue();
 
-            if (bindingValue instanceof Object[]) {
-                addArrayBindingAsEnvironmentVariable(bindingKey, (Object[]) bindingValue, environment);
-            } else if (bindingValue instanceof Collection) {
-                addCollectionBindingAsEnvironmentVariable(bindingKey, (Collection) bindingValue, environment);
-            } else if (bindingValue instanceof Map) {
-                addMapBindingAsEnvironmentVariable(bindingKey, (Map<?, ?>) bindingValue, environment);
-            } else {
-                environment.put(bindingKey, toEmptyStringIfNull(binding.getValue()));
-            }
-        }
+                    if (bindingValue instanceof Object[])
+                        addArrayBindingAsEnvironmentVariable(bindingKey,
+                                (Object[]) bindingValue, environment);
+                    else if (bindingValue instanceof Collection)
+                        addCollectionBindingAsEnvironmentVariable(bindingKey,
+                                (Collection) bindingValue, environment);
+                    else if (bindingValue instanceof Map)
+                        addMapBindingAsEnvironmentVariable(bindingKey,
+                                (Map<?, ?>) bindingValue, environment);
+                    else
+                        environment.put(bindingKey, toEmptyStringIfNull(binding
+                                .getValue()));
+                });
     }
 
-    private void addMapBindingAsEnvironmentVariable(String bindingKey, Map<?, ?> bindingValue, Map<String, String> environment) {
-        for (Map.Entry<?, ?> entry : ((Map<?, ?>) bindingValue).entrySet()) {
-            environment.put(bindingKey + "_" + entry.getKey(), (entry.getValue() == null ? "" : toEmptyStringIfNull(entry.getValue())));
-        }
+    private void addMapBindingAsEnvironmentVariable(String bindingKey,
+            Map<?, ?> bindingValue, Map<String, String> environment) {
+        ((Map<?, ?>) bindingValue).entrySet()
+                .forEach((entry) -> {
+                    environment.put(bindingKey + "_" + entry.getKey(),
+                            (entry.getValue() == null ? "" : toEmptyStringIfNull(entry
+                                    .getValue())));
+        });
     }
 
-    private void addCollectionBindingAsEnvironmentVariable(String bindingKey, Collection bindingValue, Map<String, String> environment) {
+    private void addCollectionBindingAsEnvironmentVariable(String bindingKey,
+            Collection bindingValue, Map<String, String> environment) {
         Object[] bindingValueAsArray = bindingValue.toArray();
-        addArrayBindingAsEnvironmentVariable(bindingKey, bindingValueAsArray, environment);
+        addArrayBindingAsEnvironmentVariable(bindingKey, bindingValueAsArray,
+                environment);
     }
 
-    private void addArrayBindingAsEnvironmentVariable(String bindingKey, Object[] bindingValue, Map<String, String> environment) {
-        for (int i = 0; i < bindingValue.length; i++) {
-            environment.put(bindingKey + "_" + i, (bindingValue[i] == null ? "" : toEmptyStringIfNull(bindingValue[i].toString())));
-        }
+    private void addArrayBindingAsEnvironmentVariable(String bindingKey,
+            Object[] bindingValue, Map<String, String> environment) {
+        for (int i = 0; i < bindingValue.length; i++)
+            environment.put(bindingKey + "_" + i, (bindingValue[i] == null ? ""
+                                                   : toEmptyStringIfNull(
+                                                   bindingValue[i].toString())));
     }
 
-    private static Thread readProcessOutput(final InputStream processOutput, final Writer contextWriter) {
-        return new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    pipe(new BufferedReader(new InputStreamReader(processOutput)), new BufferedWriter(contextWriter));
-                } catch (IOException ignored) {
-                }
+    private static Thread readProcessOutput(final InputStream processOutput,
+            final Writer contextWriter) {
+        return new Thread(() -> {
+            try {
+                pipe(new BufferedReader(new InputStreamReader(processOutput)),
+                        new BufferedWriter(contextWriter));
+            } catch (IOException ignored) {
             }
         });
     }
 
-    private static Thread writeProcessInput(final OutputStream processOutput, final Reader contextWriter) {
-        return new Thread(new Runnable() {
-            @Override
-            public void run() {
+    private static Thread writeProcessInput(final OutputStream processOutput,
+            final Reader contextWriter) {
+        return new Thread(() -> {
+            try {
+                pipe(new BufferedReader(contextWriter),
+                        new OutputStreamWriter(processOutput));
+            } catch (IOException closed) {
                 try {
-                    pipe(new BufferedReader(contextWriter), new OutputStreamWriter(processOutput));
-                } catch (IOException closed) {
-                    try {
-                        processOutput.close();
-                    } catch (IOException ignored) {
-                    }
+                    processOutput.close();
+                } catch (IOException ignored) {
                 }
             }
         });
@@ -165,7 +181,8 @@ public class NativeShellRunner {
 
     private File commandAsTemporaryFile(String command) {
         try {
-            File commandAsFile = File.createTempFile("jsr223nativeshell-", nativeShell.getFileExtension());
+            File commandAsFile = File.createTempFile("jsr223nativeshell-",
+                    nativeShell.getFileExtension());
             IOUtils.writeStringToFile(command, commandAsFile);
             return commandAsFile;
         } catch (IOException e) {

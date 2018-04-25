@@ -15,9 +15,9 @@ public class CmdScriptEngineFactory implements ScriptEngineFactory {
 
     private static final String NAME = "cmd";
     private static final String ENGINE = "Cmd interpreter";
-    private static final String ENGINE_VERSION = new NativeShellRunner(new Cmd()).getInstalledVersion();
+    private static final String ENGINE_VERSION = new NativeShellRunner(new Cmd(null)).getInstalledVersion();
     private static final String LANGUAGE = "Cmd";
-    private static final String LANGUAGE_VERSION = new NativeShellRunner(new Cmd()).getMajorVersion();
+    private static final String LANGUAGE_VERSION = new NativeShellRunner(new Cmd(null)).getMajorVersion();
 
     private static final Map<String, Object> parameters = new HashMap<String, Object>();
 
@@ -95,6 +95,6 @@ public class CmdScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public ScriptEngine getScriptEngine() {
-        return new NativeShellScriptEngine(new Cmd());
+        return new NativeShellScriptEngine(new Cmd(this));
     }
 }

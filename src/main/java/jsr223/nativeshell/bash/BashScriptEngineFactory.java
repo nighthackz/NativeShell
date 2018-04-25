@@ -15,9 +15,9 @@ public class BashScriptEngineFactory implements ScriptEngineFactory {
 
     private static final String NAME = "bash";
     private static final String ENGINE = "Bash interpreter";
-    private static final String ENGINE_VERSION = new NativeShellRunner(new Bash()).getInstalledVersion();
+    private static final String ENGINE_VERSION = new NativeShellRunner(new Bash(null)).getInstalledVersion();
     private static final String LANGUAGE = "Bash";
-    private static final String LANGUAGE_VERSION = new NativeShellRunner(new Bash()).getMajorVersion();
+    private static final String LANGUAGE_VERSION = new NativeShellRunner(new Bash(null)).getMajorVersion();
 
     private static final Map<String, Object> parameters = new HashMap<String, Object>();
 
@@ -94,6 +94,6 @@ public class BashScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public ScriptEngine getScriptEngine() {
-        return new NativeShellScriptEngine(new Bash());
+        return new NativeShellScriptEngine(new Bash(this));
     }
 }

@@ -29,7 +29,7 @@ public class CmdScriptEngineTest {
 
     @Before
     public void setup() {
-        scriptEngine = new NativeShellScriptEngine(new Cmd());
+        scriptEngine = new NativeShellScriptEngine(new Cmd(null));
         scriptOutput = new StringWriter();
         scriptEngine.getContext().setWriter(scriptOutput);
         scriptError = new StringWriter();

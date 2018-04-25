@@ -28,7 +28,7 @@ public class BashScriptEngineTest {
 
     @Before
     public void setup() {
-        scriptEngine = new NativeShellScriptEngine(new Bash());
+        scriptEngine = new NativeShellScriptEngine(new Bash(null));
         scriptOutput = new StringWriter();
         scriptEngine.getContext().setWriter(scriptOutput);
         scriptError = new StringWriter();

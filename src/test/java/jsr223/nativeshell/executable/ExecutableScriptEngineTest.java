@@ -24,7 +24,7 @@ public class ExecutableScriptEngineTest {
 
     @Before
     public void setup() {
-        scriptEngine = new ExecutableScriptEngine();
+        scriptEngine = new ExecutableScriptEngine(null);
         scriptOutput = new StringWriter();
         scriptEngine.getContext().setWriter(scriptOutput);
         scriptError = new StringWriter();

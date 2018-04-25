@@ -29,10 +29,10 @@ public final class IOUtils {
             char[] buff = new char[1024];
             int n = from.read(buff);
             while (n != -1) {
-                to.write(buff, 0, n);
-                to.flush();
+                    to.write(buff, 0, n);
+                    to.flush();
                 n = from.read(buff);
-            }
+                }
             from.close();
     }
 }

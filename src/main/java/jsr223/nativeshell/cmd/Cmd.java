@@ -6,11 +6,16 @@ import javax.script.ScriptEngineFactory;
 import java.io.File;
 
 public class Cmd implements NativeShell {
+    
+    private final ScriptEngineFactory factory;
+    public Cmd(ScriptEngineFactory f) { factory = f; }
 
+    @Override
     public ProcessBuilder createProcess(File commandAsFile) {
         return new ProcessBuilder("cmd", "/q", "/c", commandAsFile.getAbsolutePath());
     }
 
+    @Override
     public ProcessBuilder createProcess(String command) {
         return new ProcessBuilder("cmd", "/c", command);
     }
@@ -26,8 +31,8 @@ public class Cmd implements NativeShell {
     }
 
     @Override
-    public ScriptEngineFactory getScriptEngineFactory() {
-        return new CmdScriptEngineFactory();
+    public ScriptEngineFactory getFactory() {
+        return factory;
     }
 
     @Override

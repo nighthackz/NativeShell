@@ -11,7 +11,7 @@ import javax.script.SimpleBindings;
 
 public class NativeShellScriptEngine extends AbstractScriptEngine {
 
-    private NativeShell nativeShell;
+    private final NativeShell nativeShell;
 
     public NativeShellScriptEngine(NativeShell nativeShell) {
         this.nativeShell = nativeShell;
@@ -19,11 +19,15 @@ public class NativeShellScriptEngine extends AbstractScriptEngine {
 
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
-        int exitValue = new NativeShellRunner(nativeShell).run(script, context);
-        if (exitValue != 0) {
-            throw new ScriptException("Script failed with exit code " + exitValue);
+        if(context.getAttribute("returnstdout")==Boolean.TRUE) {
+            return new NativeShellRunner(nativeShell).runAndGetOutput(script);
+        } else {
+            int exitValue = new NativeShellRunner(nativeShell).run(script, context);
+            if (exitValue != 0) {
+                throw new ScriptException("Script failed with exit code " + exitValue);
+            }
+            return exitValue;
         }
-        return exitValue;
     }
 
     @Override
@@ -38,6 +42,6 @@ public class NativeShellScriptEngine extends AbstractScriptEngine {
 
     @Override
     public ScriptEngineFactory getFactory() {
-        return nativeShell.getScriptEngineFactory();
+        return nativeShell.getFactory();
     }
 }

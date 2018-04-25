@@ -6,11 +6,15 @@ import javax.script.ScriptEngineFactory;
 import java.io.File;
 
 public class Bash implements NativeShell {
+    private final ScriptEngineFactory factory;
+    public Bash(ScriptEngineFactory f) { factory = f; }
 
+    @Override
     public ProcessBuilder createProcess(File commandAsFile) {
         return new ProcessBuilder("bash", commandAsFile.getAbsolutePath());
     }
 
+    @Override
     public ProcessBuilder createProcess(String command) {
         return new ProcessBuilder("bash", "-c", command);
     }
@@ -26,8 +30,8 @@ public class Bash implements NativeShell {
     }
 
     @Override
-    public ScriptEngineFactory getScriptEngineFactory() {
-        return new BashScriptEngineFactory();
+    public ScriptEngineFactory getFactory() {
+        return factory;
     }
 
     @Override

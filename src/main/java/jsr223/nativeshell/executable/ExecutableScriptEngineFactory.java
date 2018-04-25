@@ -1,8 +1,5 @@
 package jsr223.nativeshell.executable;
 
-import jsr223.nativeshell.NativeShellRunner;
-import jsr223.nativeshell.NativeShellScriptEngine;
-import jsr223.nativeshell.cmd.Cmd;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
@@ -91,6 +88,6 @@ public class ExecutableScriptEngineFactory implements ScriptEngineFactory {
 
     @Override
     public ScriptEngine getScriptEngine() {
-        return new ExecutableScriptEngine();
+        return new ExecutableScriptEngine(this);
     }
 }

@@ -12,7 +12,9 @@ public interface NativeShell {
 
     public String getMajorVersionCommand();
 
-    ScriptEngineFactory getScriptEngineFactory();
+    ScriptEngineFactory getFactory();
 
     String getFileExtension();
+    
+    default boolean valueFromStdout() { return false; }
 }
