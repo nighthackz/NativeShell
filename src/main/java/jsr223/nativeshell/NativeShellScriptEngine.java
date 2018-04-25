@@ -19,14 +19,18 @@ public class NativeShellScriptEngine extends AbstractScriptEngine {
 
     @Override
     public Object eval(String script, ScriptContext context) throws ScriptException {
-        if(context.getAttribute("returnstdout")==Boolean.TRUE) {
-            return new NativeShellRunner(nativeShell).runAndGetOutput(script);
-        } else {
-            int exitValue = new NativeShellRunner(nativeShell).run(script, context);
-            if (exitValue != 0) {
-                throw new ScriptException("Script failed with exit code " + exitValue);
+        try {
+            if(context.getAttribute("returnstdout")==Boolean.TRUE) {
+                return new NativeShellRunner(nativeShell).runAndGetOutput(script).trim();
+            } else {
+                int exitValue = new NativeShellRunner(nativeShell).run(script, context);
+                if (exitValue != 0) {
+                    throw new ScriptException("Script failed with exit code " + exitValue);
+                }
+                return exitValue;
             }
-            return exitValue;
+        } catch(Throwable t) {
+            throw new ScriptException("Script failed with exception "+t);
         }
     }
 
